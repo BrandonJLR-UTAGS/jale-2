@@ -135,7 +135,6 @@ window.addEventListener('load', function(){
             this.markedForDeletion = false;
             this.lives = 5;
             this.score = this.lives;
-           
             this.frameX=0;
             this.frameY=0
             this.maxFrame=37
@@ -146,7 +145,7 @@ window.addEventListener('load', function(){
             if(this.x + this.width < 0) {
                 this.markedForDeletion = true;
             }
-            if(this.frameX < this.frameX){
+            if(this.frameX < this.maxFrame){
                 this.frameX++;
             }else{
                 this.frameX =0
@@ -156,11 +155,11 @@ window.addEventListener('load', function(){
         draw(context) {
             if(this.game.debug) context.strokeRect(this.x, this.y, this.width, this.height);
             context.drawImage(this.image,
-                this.frameX * this.width,
-                this.frameY * this.height,
-                this.width, this.height,
-                this.x,this.y,
-                this.width, this.height);
+                    this.frameX * this.width,
+                    this.frameY * this.height,
+                    this.width, this.height,
+                    this.x,this.y,
+                    this.width, this.height);
             context.font = '20px Helvetica';
             context.fillText(this.lives, this.x, this.y);
         }
@@ -317,7 +316,7 @@ window.addEventListener('load', function(){
             this.gameTime = 0;
             this.timeLimit = 10000;
             this.speed = 1;
-            this.debug= true;
+            this.debug= false;
         }
 
         update(deltaTime){
