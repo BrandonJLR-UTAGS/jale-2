@@ -18,32 +18,37 @@
 window.addEventListener('load', function(){
     const canvas = document.getElementById('canvas1');
     const ctx = canvas.getContext('2d');
-    canvas.width = 500;
+    canvas.width = 1000;
     canvas.height = 500;
 
     class InputHandler{
         constructor(game){
             this.game = game;
+            //se capturar la teclas  que realiza el usuario
             window.addEventListener('keydown', e => {
+                //Al precionar flecha arriba se mueve nuetr juagar hacia arriba
                 if(( (e.key === 'ArrowUp') || (e.key === 'ArrowDown') )&& this.game.keys.indexOf(e.key) === -1){
                     this.game.keys.push(e.key);
+                    //el boton de espacio nos permite disparar
                     }else if(e.key=== ' '){
                         this.game.player.shootTop();
                     }
                     console.log(this.game.keys);
             });
-
+            //al precionar tecla hacia abajo nuestro personas se mueve a la parte inferior
             window.addEventListener('keyup', e => {
                 if(this.game.keys.indexOf(e.key)>-1){
                     this.game.keys.splice(this.game.keys.indexOf(e.key),1);
+                    //la tecla 'd' nso permite el activar o desacativar el modo debug
                 }else if(e.key === 'd'){
+                    //Nos permite marcar algunas cosas durante el desarrollo
                 this.game.debug = !this.game.debug;
             }
                 console.log(this.game.keys);
             });
         }
     }
-    
+    //se definen los parametros de los proyectiles lanzados por el jugador
     class Projectile{
         constructor(game, x, y){
             this.game = game;
@@ -51,41 +56,43 @@ window.addEventListener('load', function(){
             this.y = y;
             this.width = 10;
             this.height = 4;
-            this.speed = 3;
-            this.markedForDeletion = false;
+            this.speed = 8; // velocidad de los proyectiles
+            this.markedForDeletion = false; //si esto desaparecen
         }
 
         update(){
+            //movimiento de las balas
             this.x += this.speed;
             if(this.x > this.game.width * 0.8){
                 this.markedForDeletion = true;
             }
         }
-
+            //dibujamos en pantalla nuestros proyectiles
         draw(context){
-            context.fillStyle = 'yellow';
+            context.fillStyle = 'blue'; //color de los proyectiles
             context.fillRect(this.x, this.y, this.width, this.height);
         }
     }
 
-
+//definimos los parametros de nuestro jugador
     class Player{
         constructor(game){
             this.game = game;
-            this.width = 120;
-            this.height = 190;
+            this.width = 120; //ancho
+            this.height = 190;//alto
             this.x = 20;
             this.y = 100;
             this.speedY = 0;
-            this.maxSpeed = 1;
+            this.maxSpeed = 3;  //velocidad maxima del jugador
             this.projectiles = [];
             this.image=document.getElementById('player');
             this.frameX= 0;
             this.frameY= 0;
-            this.maxFrame = 37;
+            this.maxFrame = 37; //frames de la imagen de nuestro jugador
         }
 
         update(){
+            //movimientos de los jugadores
             if(this.game.keys.includes('ArrowUp')){
                 this.speedY = -this.maxSpeed;
             }else if(this.game.keys.includes('ArrowDown')){
@@ -96,7 +103,7 @@ window.addEventListener('load', function(){
             this.y += this.speedY;
             this.projectiles.forEach(projectile => {
                 projectile.update();
-            });
+            });//impresion de los proyectiles
             this.projectiles = this.projectiles.filter(projectile => !projectile.markedForDeletion);
             if(this.frameX < this.maxFrame){
                 this.frameX++;
@@ -106,6 +113,7 @@ window.addEventListener('load', function(){
         }
 
         draw(context){
+            //imprimimos nuestro juagor en la pantalla
             if(this.game.debug) context.strokeRect(this.x, this.y, this.width, this.height);
             context.drawImage(this.image,
                     this.frameX * this.width,
@@ -113,6 +121,8 @@ window.addEventListener('load', function(){
                     this.width, this.height,
                     this.x,this.y,
                     this.width, this.height);
+
+                    //imprime las balas
             this.projectiles.forEach(projectile => {
                 projectile.draw(context);
             });
@@ -120,6 +130,7 @@ window.addEventListener('load', function(){
         }
 
         shootTop(){
+            //marcamos de donde saldran los proyectile y retiramos restamos una velocidad
             if(this.game.ammo > 0){
                 this.projectiles.push(new Projectile(this.game, this.x+80, this.y+30));
                 this.game.ammo--;
@@ -128,19 +139,21 @@ window.addEventListener('load', function(){
     }
 
     class Enemy {
+        //constructor de los enemigos
         constructor(game) {
             this.game = game;
             this.x = this.game.width;
-            this.speedX = Math.random()*-1.5-0.5;
+            this.speedX = Math.random()*-1.5-0.5; //velocidad de los enemigos
             this.markedForDeletion = false;
-            this.lives = 5;
-            this.score = this.lives;
+            this.lives = 1;//vidas por defecto de los enemigos
+            this.score = this.lives;//puntaje que nos da al matar al enemigo
             this.frameX=0;
             this.frameY=0
             this.maxFrame=37
         }
 
         update() {
+            //damos el tamano y la velocidad de los enemigos asi como darle como imprimirlo en pantalla
             this.x += this.speedX, this.game.speed;
             if(this.x + this.width < 0) {
                 this.markedForDeletion = true;
@@ -153,6 +166,7 @@ window.addEventListener('load', function(){
         }
 
         draw(context) {
+            //imprimimos los a los enemigos con las imagenes
             if(this.game.debug) context.strokeRect(this.x, this.y, this.width, this.height);
             context.drawImage(this.image,
                     this.frameX * this.width,
@@ -160,11 +174,12 @@ window.addEventListener('load', function(){
                     this.width, this.height,
                     this.x,this.y,
                     this.width, this.height);
-            context.font = '20px Helvetica';
+            context.font = '50px Helvetica';
+            //imprime la vida de los enemigos
             context.fillText(this.lives, this.x, this.y);
         }
     }
-
+//paremetros de Angler1 
     class Angler1 extends Enemy {
         constructor(game) {
             super(game);
@@ -173,10 +188,10 @@ window.addEventListener('load', function(){
             this.y = Math.random()*(this.game.height*0.9-this.height);
             this.image = document.getElementById('angler1')
             this.frameY= Math.floor(Math.random()*3)
-            this.lives= 2;
+            this.lives= 1; //vida de angler1
         }
     }
-
+//parametros de angler2
     class Angler2 extends Enemy {
         constructor(game) {
             super(game);
@@ -185,10 +200,10 @@ window.addEventListener('load', function(){
             this.y = Math.random()*(this.game.height*0.9-this.height);
             this.image = document.getElementById('angler2')
             this.frameY= Math.floor(Math.random()*2)
-            this.lives=3;
+            this.lives=3;//vidas angler2
         }
     }
-
+//Parametros de lucky
     class Lucky extends Enemy {
         constructor(game) {
             super(game);
@@ -197,12 +212,12 @@ window.addEventListener('load', function(){
             this.y = Math.random()*(this.game.height*0.9-this.height);
             this.image = document.getElementById('lucky')
             this.frameY= Math.floor(Math.random()*2)
-            this.lives=3;
+            this.lives=3;//vidas de lucky
             this.score=0;
             this.type='lucky'
         }
     }
-
+//Paneles de imagenes que muetran en pantalla
     class Layer {
         constructor(game, image, speedModifier) {
             this.game = game;
@@ -224,7 +239,7 @@ window.addEventListener('load', function(){
             context.drawImage(this.image, this.x+this.width, this.y);
         }
     }
-
+//imagenes del entorno 
     class Background {
         constructor(game) {
             this.game = game;
@@ -247,7 +262,7 @@ window.addEventListener('load', function(){
             this.layers.forEach(layer => layer.draw(context));
         }
     }
-
+//inteface donde podemos ver la balas
     class UI{
         constructor(game){
             this.game = game;
@@ -255,32 +270,37 @@ window.addEventListener('load', function(){
             this.fontFamily = 'Helvetica';
             this.color = 'white';
         }
-
+//
         draw(context){
             context.save();
             context.fillStyle = this.color;
             context.shadowOffsetX = 2;
             context.shadowOffsetY = 2;
             context.shadowColor = 'black';
-
+//parametros del nuestra puntacion
             context.font = this.fontSize + 'px '+this.fontFamily;
             context.fillText('Score: '+ this.game.score, 20,40);
             for(let i=0; i<this.game.ammo; i++){
                 context.fillRect(20, 50, 3, 20);
             }
+            //timer de la partida
+
+            //le damos un formato a los numeros
             const formattedTime = (this.game.gameTime*0.001).toFixed(1);
             context.fillText('Timer: ', + formattedTime, 20, 100);
             if(this.game.gameOver) {
                 context.textAlign = 'center';
                 let message1;
                 let message2;
+                //si ganas muestra este mensaje
                 if(this.game.score > this.game.winningScore) {
                     message1 = 'You Win!';
                     message2 = 'Wel Done';
+                    //si pierdes muestra este elemento
                 } else {
                     message1 = 'You Lose';
                     message2 = 'Try Again';
-                }
+                }//tamano de los mensansaje
                 context.font = '50px ' + this.fontFamily;
                 context.fillText(message1, 
                                 this.game.width*0.5,
@@ -293,7 +313,7 @@ window.addEventListener('load', function(){
             context.restore();
         }
     }
-
+//parametros del juego
     class Game{
         constructor(width, height){
             this.width = width;
@@ -312,13 +332,13 @@ window.addEventListener('load', function(){
             this.enemyInterval = 1000;
             this.gameOver = false;
             this.score = 0;
-            this.winningScore = 10;
+            this.winningScore = 100;
             this.gameTime = 0;
-            this.timeLimit = 10000;
+            this.timeLimit = 1000000;
             this.speed = 1;
             this.debug= false;
         }
-
+//paramentros del juego
         update(deltaTime){
             if(!this.gameOver) this.gameTime += deltaTime;
             if(this.gameTime > this.timeLimit) this.gameOver = true;
@@ -329,7 +349,7 @@ window.addEventListener('load', function(){
             if(this.ammoTimer > this.ammoInterval){
                 if(this.ammo < this.maxAmmo){
                     this.ammo++;
-                    this.ammoTimer = 0;
+                    this.ammoTimer = 10;
                 }
                 
             }else{
@@ -338,16 +358,19 @@ window.addEventListener('load', function(){
 
             this.enemies.forEach(enemy => {
                 enemy.update();
+                //nos muestra si los enemigos nos chocan
                 if(this.checkCollision(this.player, enemy)) {
                     enemy.markedForDeletion = true;
-                }
+                }//nos revisa si impactamo a los enemigos
                 this.player.projectiles.forEach(projectile => {
                     if(this.checkCollision(projectile, enemy)) {
                         enemy.lives--;
                         projectile.markedForDeletion = true;
                         if(enemy.lives <= 0) {
                             enemy.markedForDeletion = true;
+                            //nos suma puntos nuestro puntajje segun el juego
                             if(!this.gameOver) this.score += enemy.score;
+                            //si llegamos al puntaje ganador ganamos
                             if(this.score > this.winningScore) this.gameOver = true;
                         }
                     }
@@ -356,7 +379,7 @@ window.addEventListener('load', function(){
 
 
             this.enemies = this.enemies.filter(enemy=>!enemy.markedForDeletion);
-
+//intevalo de los enemigos
             if(this.enemyTimer > this.enemyInterval && !this.gameOver) {
                 this.addEnemy();
                 this.enemyTimer = 0;
