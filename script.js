@@ -58,6 +58,7 @@ window.addEventListener('load', function(){
             this.height = 4;
             this.speed = 8; // velocidad de los proyectiles
             this.markedForDeletion = false; //si esto desaparecen
+            this.image = document.getElementById('projectile')
         }
 
         update(){
@@ -69,8 +70,7 @@ window.addEventListener('load', function(){
         }
             //dibujamos en pantalla nuestros proyectiles
         draw(context){
-            context.fillStyle = 'blue'; //color de los proyectiles
-            context.fillRect(this.x, this.y, this.width, this.height);
+            context.drawImage(this.image,this.x, this.y)
         }
     }
 
@@ -89,9 +89,12 @@ window.addEventListener('load', function(){
             this.frameX= 0;
             this.frameY= 0;
             this.maxFrame = 37; //frames de la imagen de nuestro jugador
+            this.powerUp=false;
+            this.powerUpTimer=0;
+            this.powerUpLimit=10000;
         }
 
-        update(){
+        update(deltaTime){
             //movimientos de los jugadores
             if(this.game.keys.includes('ArrowUp')){
                 this.speedY = -this.maxSpeed;
@@ -110,9 +113,26 @@ window.addEventListener('load', function(){
             }else{
                 this.frameX=0;
             }
+
+            if(this.powerUp){
+                if(this.powerUpTimer > this.powerUpLimit){
+                    this.powerUpTimer=0;
+                    this.powerUp=false;
+                    this.frameY = 0;
+
+                }else{
+                    this.powerUpTimer += deltaTime;
+                    this.frameY= 1;
+                    this.game.ammo += 0.1;
+                }
+            }
         }
 
         draw(context){
+            this.projectiles.forEach(projectile => {
+                projectile.draw(context);
+
+            });
             //imprimimos nuestro juagor en la pantalla
             if(this.game.debug) context.strokeRect(this.x, this.y, this.width, this.height);
             context.drawImage(this.image,
@@ -121,11 +141,7 @@ window.addEventListener('load', function(){
                     this.width, this.height,
                     this.x,this.y,
                     this.width, this.height);
-
                     //imprime las balas
-            this.projectiles.forEach(projectile => {
-                projectile.draw(context);
-            });
 
         }
 
@@ -135,6 +151,20 @@ window.addEventListener('load', function(){
                 this.projectiles.push(new Projectile(this.game, this.x+80, this.y+30));
                 this.game.ammo--;
             }
+            if(this.powerUp) this.shootBotton();
+        }
+
+        shootBotton(){
+            if(this.game.ammo > 0 ){
+                this.projectiles.push(new Projectile(this.game, this.x+80, this.y+175));
+            }
+        }
+
+        enterPowerUp(){
+            this.powerUpTimer=0;
+            this.powerUp=true;
+            this.game.ammo = this.game.maxAmmo;
+
         }
     }
 
@@ -280,14 +310,11 @@ window.addEventListener('load', function(){
 //parametros del nuestra puntacion
             context.font = this.fontSize + 'px '+this.fontFamily;
             context.fillText('Score: '+ this.game.score, 20,40);
-            for(let i=0; i<this.game.ammo; i++){
-                context.fillRect(20, 50, 3, 20);
-            }
             //timer de la partida
-
+            
             //le damos un formato a los numeros
             const formattedTime = (this.game.gameTime*0.001).toFixed(1);
-            context.fillText('Timer: ', + formattedTime, 20, 100);
+            context.fillText('Timer: ' + formattedTime, 20, 100);
             if(this.game.gameOver) {
                 context.textAlign = 'center';
                 let message1;
@@ -307,13 +334,19 @@ window.addEventListener('load', function(){
                                 this.game.height*0.5-20);
                 context.font = '25px ' + this.fontFamily;
                 context.fillText(message2,
-                                this.game.width*0.5,
-                                this.game.height*0.5+20)
+                    this.game.width*0.5,
+                    this.game.height*0.5+20)
+            }
+            if(this.game.player.powerUp){
+                context.fillStyle= 'yellow';
+            }
+            for(let i=0; i<this.game.ammo; i++){
+                context.fillRect(20+5*i, 50, 3, 20);
             }
             context.restore();
         }
     }
-//parametros del juego
+    //parametros del juego
     class Game{
         constructor(width, height){
             this.width = width;
@@ -334,7 +367,7 @@ window.addEventListener('load', function(){
             this.score = 0;
             this.winningScore = 100;
             this.gameTime = 0;
-            this.timeLimit = 1000000;
+            this.timeLimit = 300000;
             this.speed = 1;
             this.debug= false;
         }
@@ -345,11 +378,11 @@ window.addEventListener('load', function(){
             this.background.update();
             this.background.layer4.update();
 
-            this.player.update();
+            this.player.update(deltaTime);
             if(this.ammoTimer > this.ammoInterval){
                 if(this.ammo < this.maxAmmo){
                     this.ammo++;
-                    this.ammoTimer = 10;
+                    this.ammoTimer = 0;
                 }
                 
             }else{
@@ -361,6 +394,11 @@ window.addEventListener('load', function(){
                 //nos muestra si los enemigos nos chocan
                 if(this.checkCollision(this.player, enemy)) {
                     enemy.markedForDeletion = true;
+                    if(enemy.type === 'lucky'){
+                        this.player.enterPowerUp();
+                    }else{
+                        this.score--;
+                    }
                 }//nos revisa si impactamo a los enemigos
                 this.player.projectiles.forEach(projectile => {
                     if(this.checkCollision(projectile, enemy)) {
