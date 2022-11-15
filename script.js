@@ -73,7 +73,48 @@ window.addEventListener('load', function(){
             context.drawImage(this.image,this.x, this.y)
         }
     }
+class Particles{
+    constructor(game,x,y){
+        this.game=game;
+        this.x=x;
+        this.y = y;
+        this.image = document.getElementById('gears');
+        this.frameX= Math.floor(Math.random()*3);
+        this.frameY= Math.floor(Math.random()*3);
+        this.spriteSize = 50;
+        this.sizeModifier = (Math.random()*0.5+0.5).toFixed(1);
+        this.size = this.spriteSize*this.sizeModifier;
+        this.speedX = Math.random()*6-3;
+        this.speedY = Math.random()*-15;
+        this.gravity=0.5;
+        this.markedForDeletion= false;
+        this.angle = 0
+        this.va = Math.random()*0.2-0.1;
+        this.bounced = 0;
+        this.bottonBounceBoundary= Math.random()*80+60;
+    }
 
+    update(){
+        this.angle += this.va;
+        this.speedY= this.gravity;
+        this.x -= this.speedX+ this.game.speed;
+        this.y += this.speedY;
+        if(this.y > this.game.height + this.size ||
+            this.x < 0 - this.size){
+                this.markedForDeletion=true;
+            }
+    }
+
+
+    draw(context){
+        context.drawImage(this.image,
+            this.frameX * this.spriteSize,
+            this.frameY * this.spriteSize,
+            this.spriteSize, this.spriteSize,
+            this.x,this.y,
+            this.size, this.size);
+    }
+}
 //definimos los parametros de nuestro jugador
     class Player{
         constructor(game){
@@ -104,6 +145,11 @@ window.addEventListener('load', function(){
                 this.speedY = 0;
             }
             this.y += this.speedY;
+            if(this.y > this.game.height - this.height * 0.5){
+                this.t = this.game.height - this.height * 0.5;
+            }else if(this.y < -this.height * 0.5){
+                this.y = -this.height * 0.5;
+            }   
             this.projectiles.forEach(projectile => {
                 projectile.update();
             });//impresion de los proyectiles
@@ -175,7 +221,7 @@ window.addEventListener('load', function(){
             this.x = this.game.width;
             this.speedX = Math.random()*-1.5-0.5; //velocidad de los enemigos
             this.markedForDeletion = false;
-            this.lives = 1;//vidas por defecto de los enemigos
+            this.lives = 2;//vidas por defecto de los enemigos
             this.score = this.lives;//puntaje que nos da al matar al enemigo
             this.frameX=0;
             this.frameY=0
@@ -197,16 +243,18 @@ window.addEventListener('load', function(){
 
         draw(context) {
             //imprimimos los a los enemigos con las imagenes
-            if(this.game.debug) context.strokeRect(this.x, this.y, this.width, this.height);
+            if(this.game.debug){
+                context.strokeRect(this.x, this.y, this.width, this.height);
+                context.font = '20px Helvetica';
+                //imprime la vida de los enemigos
+                context.fillText(this.lives, this.x, this.y);
+              }   
             context.drawImage(this.image,
                     this.frameX * this.width,
                     this.frameY * this.height,
                     this.width, this.height,
                     this.x,this.y,
                     this.width, this.height);
-            context.font = '50px Helvetica';
-            //imprime la vida de los enemigos
-            context.fillText(this.lives, this.x, this.y);
         }
     }
 //paremetros de Angler1 
@@ -218,7 +266,7 @@ window.addEventListener('load', function(){
             this.y = Math.random()*(this.game.height*0.9-this.height);
             this.image = document.getElementById('angler1')
             this.frameY= Math.floor(Math.random()*3)
-            this.lives= 1; //vida de angler1
+            this.lives= 3; //vida de angler1
         }
     }
 //parametros de angler2
@@ -230,7 +278,7 @@ window.addEventListener('load', function(){
             this.y = Math.random()*(this.game.height*0.9-this.height);
             this.image = document.getElementById('angler2')
             this.frameY= Math.floor(Math.random()*2)
-            this.lives=3;//vidas angler2
+            this.lives=4;//vidas angler2
         }
     }
 //Parametros de lucky
@@ -242,7 +290,7 @@ window.addEventListener('load', function(){
             this.y = Math.random()*(this.game.height*0.9-this.height);
             this.image = document.getElementById('lucky')
             this.frameY= Math.floor(Math.random()*2)
-            this.lives=3;//vidas de lucky
+            this.lives=2;//vidas de lucky
             this.score=0;
             this.type='lucky'
         }
@@ -297,7 +345,7 @@ window.addEventListener('load', function(){
         constructor(game){
             this.game = game;
             this.fontSize = 25;
-            this.fontFamily = 'Helvetica';
+            this.fontFamily = 'Bangers';
             this.color = 'white';
         }
 //
@@ -328,14 +376,14 @@ window.addEventListener('load', function(){
                     message1 = 'You Lose';
                     message2 = 'Try Again';
                 }//tamano de los mensansaje
-                context.font = '50px ' + this.fontFamily;
+                context.font = '100px ' + this.fontFamily;
                 context.fillText(message1, 
                                 this.game.width*0.5,
-                                this.game.height*0.5-20);
-                context.font = '25px ' + this.fontFamily;
+                                this.game.height*0.5-30);
+                context.font = '75px ' + this.fontFamily;
                 context.fillText(message2,
                     this.game.width*0.5,
-                    this.game.height*0.5+20)
+                    this.game.height*0.5+30)
             }
             if(this.game.player.powerUp){
                 context.fillStyle= 'yellow';
@@ -370,6 +418,7 @@ window.addEventListener('load', function(){
             this.timeLimit = 300000;
             this.speed = 1;
             this.debug= false;
+            this.particles=[];
         }
 //paramentros del juego
         update(deltaTime){
@@ -389,6 +438,10 @@ window.addEventListener('load', function(){
                 this.ammoTimer += deltaTime;
             }
 
+            this.particles.forEach(particles=> particles.update())
+            this.particles = this.particles.filter(particles=>!particles.markedForDeletion);
+
+
             this.enemies.forEach(enemy => {
                 enemy.update();
                 //nos muestra si los enemigos nos chocan
@@ -406,7 +459,13 @@ window.addEventListener('load', function(){
                         projectile.markedForDeletion = true;
                         if(enemy.lives <= 0) {
                             enemy.markedForDeletion = true;
-                            //nos suma puntos nuestro puntajje segun el juego
+
+                            this.particles.push(new Particles(
+                                this,
+                                enemy.x + enemy.width * 0.5,
+                                enemy.y + enemy.height * 0.5
+                                ));
+                                //nos suma puntos nuestro puntajje segun el juego
                             if(!this.gameOver) this.score += enemy.score;
                             //si llegamos al puntaje ganador ganamos
                             if(this.score > this.winningScore) this.gameOver = true;
@@ -433,6 +492,8 @@ window.addEventListener('load', function(){
             this.enemies.forEach(enemy => {
                 enemy.draw(context);
             });
+            this.ui.draw(context);
+            this.particles.forEach(particles=>particles.draw(context))
             this.background.layer4.draw(context);
         }
 
