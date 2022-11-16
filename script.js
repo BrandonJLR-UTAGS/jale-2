@@ -104,21 +104,29 @@ window.addEventListener("load", function () {
       this.y += this.speedY;
       if (this.y > this.game.height + this.size || this.x < 0 - this.size) {
         this.markedForDeletion = true;
+        if(this.y > this.game.height - this.bottonBounceBoundary
+          && this.bounced < 2){
+            this.bounced ++;
+            this.speedY *= -0.9;
+          }
       }
     }
 
     draw(context) {
+      context.save();
+      context.translate(this.x, this.y);
+      context.rotate(this.angle);
       context.drawImage(
         this.image,
         this.frameX * this.spriteSize,
         this.frameY * this.spriteSize,
         this.spriteSize,
         this.spriteSize,
-        this.x,
-        this.y,
+        this.size*-0.5, this.size*-0.5,
         this.size,
         this.size
       );
+      context.restore();
     }
   }
   //definimos los parametros de nuestro jugador
