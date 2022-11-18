@@ -99,17 +99,17 @@ window.addEventListener("load", function () {
 
     update() {
       this.angle += this.va;
-      this.speedY = this.gravity;
+      this.speedY += this.gravity;
       this.x -= this.speedX + this.game.speed;
       this.y += this.speedY;
       if (this.y > this.game.height + this.size || this.x < 0 - this.size) {
         this.markedForDeletion = true;
-        if(this.y > this.game.height - this.bottonBounceBoundary
-          && this.bounced < 2){
-            this.bounced ++;
-            this.speedY *= -0.9;
-          }
       }
+      if(this.y > this.game.height - this.bottonBounceBoundary
+        && this.bounced < 2){
+          this.bounced ++;
+          this.speedY *= -0.9;
+        }
     }
 
     draw(context) {
@@ -322,6 +322,22 @@ window.addEventListener("load", function () {
       this.type = "lucky";
     }
   }
+
+    //parametros de HireWhale
+    class HireWhale extends Enemy {
+      constructor(game) {
+        super(game);
+        this.width = 400;
+        this.height = 227;
+        this.y = Math.random() * (this.game.height * 0.9 - this.height);
+        this.image = document.getElementById("HireWhale");
+        this.frameY = Math.floor(Math.random() * 0);
+        this.lives = 15; //vidas angler2
+      }
+    }
+
+
+
   //Paneles de imagenes que muetran en pantalla
   class Layer {
     constructor(game, image, speedModifier) {
@@ -533,7 +549,9 @@ window.addEventListener("load", function () {
       const randomize = Math.random();
       if (randomize < 0.3) this.enemies.push(new Angler1(this));
       else if (randomize < 0.6) this.enemies.push(new Angler2(this));
+      else if (randomize < 0.8) this.enemies.push(new HireWhale(this));
       else this.enemies.push(new Lucky(this));
+      
     }
 
     checkCollision(rect1, rect2) {
