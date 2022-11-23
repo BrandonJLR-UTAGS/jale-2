@@ -294,6 +294,7 @@ window.addEventListener("load", function () {
       this.image = document.getElementById("angler1");
       this.frameY = Math.floor(Math.random() * 3);
       this.lives = 3; //vida de angler1
+      this.score = this.lives
     }
   }
   //parametros de angler2
@@ -306,6 +307,7 @@ window.addEventListener("load", function () {
       this.image = document.getElementById("angler2");
       this.frameY = Math.floor(Math.random() * 2);
       this.lives = 4; //vidas angler2
+      this.score = this.lives
     }
   }
   //Parametros de lucky
@@ -333,7 +335,66 @@ window.addEventListener("load", function () {
         this.image = document.getElementById("HireWhale");
         this.frameY = Math.floor(Math.random() * 0);
         this.lives = 15; //vidas angler2
+        this.score = this.lives
+        this.type = "hive";
+        this.speedX= Math.random()*-0.5
       }
+    }
+
+
+    class Drone extends Enemy {
+      constructor(game, x,y) {
+        super(game);
+        this.width = 115;
+        this.height = 95;
+        this.y = Math.random() * (this.game.height * 0.9 - this.height);
+        this.image = document.getElementById("drone");
+        this.frameY = Math.floor(Math.random() * 2);
+        this.lives = 2; //vidas angler2
+        this.x = x;
+        this.y = y;
+        this.score = this.lives
+        
+        this.speedX= Math.random()*-4.2-0.5
+      }
+    }
+
+    class Explosion{
+      constructor(game,x,y){
+        this,frameX=0;
+        this.spriteWidth= 200
+        this.spriteHeight=200;
+        this.fps=15;
+        this.timer=0
+        this.interval = 1000/this.fps;
+        this.maxFrame=8;
+        this.markedForDeletion= false
+        this.width=this.spritewidth;
+        this.height=this.spriteHeight;
+        this.x = x- this.width*0.5;
+        this.y = y- this.height*0.5;
+
+      }
+      update(deltaTime){
+        if(this.timer < this.interval){
+          this.frameX++;
+          this.timer=0
+        }else{
+          this.timer += deltaTime;
+        
+        }
+        if(this.frameX > this.maxFrame){
+          this.markedForDeletion = true;
+        }
+      }
+
+      draw(context){
+        context.drawImage(this.image,
+          this.frameX*this.spriteWidth,0,
+          this.spriteWidth, this.spriteHeight,
+          this.x,this.y, this.width,this.height)
+      }
+      
     }
 
 
@@ -466,6 +527,7 @@ window.addEventListener("load", function () {
       this.speed = 1;
       this.debug = false;
       this.particles = [];
+      this.Explosion=[];
     }
     //paramentros del juego
     update(deltaTime) {
@@ -506,7 +568,10 @@ window.addEventListener("load", function () {
             projectile.markedForDeletion = true;
             if (enemy.lives <= 0) {
               enemy.markedForDeletion = true;
-
+              if(enemy.type==='hive'){
+                this.enemies.push(new Drone(this,
+                  enemy.x,enemy.y))
+              }
               this.particles.push(
                 new Particles(
                   this,

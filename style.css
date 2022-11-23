@@ -17,7 +17,7 @@
     font-family: 'Bangers', cursive;
 }
 
-#layer1, #layer2, #layer3, #layer4, #player, #angler1, #angler2, #lucky,#projectile, #gears, #HireWhale{
+#layer1, #layer2, #layer3, #layer4, #player, #angler1, #angler2, #lucky,#projectile, #gears, #HireWhale,#drone,#bulbWhale,#moonfish,#Stalker,#razorfin,#SmokeExplosion,#fireExplosion{
     display: none;
 }
 
