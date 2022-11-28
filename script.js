@@ -359,44 +359,53 @@ window.addEventListener("load", function () {
       }
     }
 
-    class Explosion{
-      constructor(game,x,y){
-        this,frameX=0;
-        this.spriteWidth= 200
-        this.spriteHeight=200;
-        this.fps=15;
-        this.timer=0
-        this.interval = 1000/this.fps;
-        this.maxFrame=8;
-        this.markedForDeletion= false
-        this.width=this.spritewidth;
-        this.height=this.spriteHeight;
-        this.x = x- this.width*0.5;
-        this.y = y- this.height*0.5;
-
+    class Explosion {
+      constructor(game, x, y){
+        this.frameX = 0
+        this.spriteWidth = 200
+        this.spriteHeight = 200
+        this.timer = 0
+        this.fps = 15
+        this.interval = 1000/this.fps
+        this.maxFrame = 8
+        this.markedForDeletion = false
+        this.width = this.spriteWidth
+        this.height = this.spriteHeight
+        this.x = x-this.width*0.5
+        this.y = y-this.height*0.5
       }
+  
       update(deltaTime){
         if(this.timer < this.interval){
-          this.frameX++;
-          this.timer=0
+          this.frameX++
+          this.timer = 0
         }else{
-          this.timer += deltaTime;
-        
+          this.timer = deltaTime
         }
         if(this.frameX > this.maxFrame){
           this.markedForDeletion = true;
         }
       }
-
-      draw(context){
-        context.drawImage(this.image,
-          this.frameX*this.spriteWidth,0,
-          this.spriteWidth, this.spriteHeight,
-          this.x,this.y, this.width,this.height)
+  
+      draw(context) {
+        context.drawImage(this.image, this.frameX*this.spriteWidth, 0, this.spriteWidth, this.spriteHeight, this.x, this.y, this.width, this.height)
       }
-      
+  
+    }
+    class smokeExplosion extends Explosion{
+      constructor(game, x, y){
+        super(game,x,y)
+        this.image = document.getElementById("SmokeExplosion")
+      }
+    }
+    class fireExplosion extends Explosion{
+      constructor(game, x, y){
+        super(game,x,y)
+        this.image = document.getElementById("FireExplosion")
+      }
     }
 
+   
 
 
   //Paneles de imagenes que muetran en pantalla
@@ -527,7 +536,7 @@ window.addEventListener("load", function () {
       this.speed = 1;
       this.debug = false;
       this.particles = [];
-      this.Explosion=[];
+      this.explosions=[];
     }
     //paramentros del juego
     update(deltaTime) {
@@ -551,6 +560,11 @@ window.addEventListener("load", function () {
         (particles) => !particles.markedForDeletion
       );
 
+      this.explosions.forEach((explosion) => explosion.update());
+      this.explosions = this.explosions.filter(
+        (explosion) => !explosion.markedForDeletion
+      );
+
       this.enemies.forEach((enemy) => {
         enemy.update();
         //nos muestra si los enemigos nos chocan
@@ -568,6 +582,7 @@ window.addEventListener("load", function () {
             projectile.markedForDeletion = true;
             if (enemy.lives <= 0) {
               enemy.markedForDeletion = true;
+              this.addExplosion(enemy);
               if(enemy.type==='hive'){
                 this.enemies.push(new Drone(this,
                   enemy.x,enemy.y))
@@ -605,6 +620,8 @@ window.addEventListener("load", function () {
       this.enemies.forEach((enemy) => {
         enemy.draw(context);
       });
+      
+      this.explosions.forEach((explosion)=>explosion.draw(context));
       this.ui.draw(context);
       this.particles.forEach((particles) => particles.draw(context));
       this.background.layer4.draw(context);
@@ -617,6 +634,12 @@ window.addEventListener("load", function () {
       else if (randomize < 0.8) this.enemies.push(new HireWhale(this));
       else this.enemies.push(new Lucky(this));
       
+    }
+
+    addExplosion(enemy){
+      const randomize = Math.random();
+      if(randomize < 0.5) this.explosions.push(new smokeExplosion(this,enemy.x, enemy.y));
+      else this.explosions.push(new fireExplosion(this,enemy.x,enemy.y));
     }
 
     checkCollision(rect1, rect2) {
