@@ -129,6 +129,39 @@ window.addEventListener("load", function () {
       context.restore();
     }
   }
+
+class SoundController{
+  constructor(){
+    this.powerUpSound=
+    document.getElementById('PowerUp');
+    this.powerDownSound=
+    document.getElementById('PowerDown');
+    this.explosionSound=
+    this.shotSound = document.getElementById('Shot');
+    this.hitSound = document.getElementById('Hit');
+    this.shieldSound =
+    document.getElementById('ShieldSound');
+  }
+  powerUp(){
+    this.powerUpSound.play();
+  }
+  powerDown(){
+    this.powerDownSound.play();
+  }
+  explosion(){
+    this.explosionSound.play();
+  }
+  shot(){
+    this.shotSound.play();
+  }
+  hit(){
+    this.hitSound.play();
+  }
+  shield(){
+    this.shieldSound.play();
+  }
+}
+
   //definimos los parametros de nuestro jugador
   class Player {
     constructor(game) {
@@ -181,6 +214,7 @@ window.addEventListener("load", function () {
           this.powerUpTimer = 0;
           this.powerUp = false;
           this.frameY = 0;
+          this.game.sound.powerDown();
         } else {
           this.powerUpTimer += deltaTime;
           this.frameY = 1;
@@ -213,6 +247,7 @@ window.addEventListener("load", function () {
     shootTop() {
       //marcamos de donde saldran los proyectile y retiramos restamos una velocidad
       if (this.game.ammo > 0) {
+        this.game.sound.shot();
         this.projectiles.push(
           new Projectile(this.game, this.x + 80, this.y + 30)
         );
@@ -230,6 +265,7 @@ window.addEventListener("load", function () {
     }
 
     enterPowerUp() {
+      this.game.sound.powerUp();
       this.powerUpTimer = 0;
       this.powerUp = true;
       this.game.ammo = this.game.maxAmmo;
@@ -333,14 +369,13 @@ window.addEventListener("load", function () {
         this.height = 227;
         this.y = Math.random() * (this.game.height * 0.9 - this.height);
         this.image = document.getElementById("HireWhale");
-        this.frameY = Math.floor(Math.random() * 0);
-        this.lives = 15; //vidas angler2
+        this.frameY = 0;
+        this.lives = 5; //vidas angler2
         this.score = this.lives
         this.type = "hive";
         this.speedX= Math.random()*-0.5
       }
     }
-
 
     class Drone extends Enemy {
       constructor(game, x,y) {
@@ -356,6 +391,35 @@ window.addEventListener("load", function () {
         this.score = this.lives
         
         this.speedX= Math.random()*-4.2-0.5
+      }
+    }
+
+    class BulbWhale extends Enemy{
+      constructor(game) {
+        super(game);
+      this.width = 270;
+      this.height = 219;
+      this.y = Math.random() * (this.game.height * 0.9 - this.height);
+      this.image = document.getElementById("bulbWhale");
+      this.frameY = 2;
+      this.lives = 5; //vidas angler2
+      this.score = this.lives
+      }
+    }
+
+    class MoonFish extends Enemy{
+      constructor(game){
+        super(game);
+        this.width=227;
+        this.height=250;
+        this.lives=7;
+        this.y= Math.random()*(this.game.height*0.9-this.height);
+        this.image=document.getElementById('moonfish');
+        this.frameY=0;
+        
+        this.score=this.lives*2;
+        this.speedX= Math.random()*-1.2-2;
+        this.type="moon";
       }
     }
 
@@ -537,6 +601,7 @@ window.addEventListener("load", function () {
       this.debug = false;
       this.particles = [];
       this.explosions=[];
+      this.sound = new SoundController();
     }
     //paramentros del juego
     update(deltaTime) {
@@ -569,6 +634,7 @@ window.addEventListener("load", function () {
         enemy.update();
         //nos muestra si los enemigos nos chocan
         if (this.checkCollision(this.player, enemy)) {
+          this.sound.hit();
           enemy.markedForDeletion = true;
           if (enemy.type === "lucky") {
             this.player.enterPowerUp();
@@ -581,8 +647,12 @@ window.addEventListener("load", function () {
             enemy.lives--;
             projectile.markedForDeletion = true;
             if (enemy.lives <= 0) {
+              this.sound.explosion();
               enemy.markedForDeletion = true;
               this.addExplosion(enemy);
+              if(enemy.type==='moon'){
+                this.player.enterPowerUp();
+              }
               if(enemy.type==='hive'){
                 this.enemies.push(new Drone(this,
                   enemy.x,enemy.y))
@@ -631,7 +701,9 @@ window.addEventListener("load", function () {
       const randomize = Math.random();
       if (randomize < 0.3) this.enemies.push(new Angler1(this));
       else if (randomize < 0.6) this.enemies.push(new Angler2(this));
+      else if(randomize < 0.7) this.enemies.push(new BulbWhale(this) );
       else if (randomize < 0.8) this.enemies.push(new HireWhale(this));
+      else if(randomize < 0.9) this.enemies.push( new MoonFish(this));
       else this.enemies.push(new Lucky(this));
       
     }
